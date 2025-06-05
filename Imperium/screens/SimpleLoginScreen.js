@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+
 import {
   View,
   Text,
@@ -31,11 +33,11 @@ const SimpleLoginScreen = () => {
     console.log('Login:', loginData);
   };
 
-  const handleCadastrar = () => {
-    // Navegar para tela de cadastro
-    console.log('Navegar para cadastro');
-  };
+const navigation = useNavigation();
 
+const handleCadastrar = () => {
+  navigation.navigate('Cadastro');
+};
   const handleEsqueceuSenha = () => {
     // Implementar recuperação de senha
     console.log('Esqueceu a senha');
