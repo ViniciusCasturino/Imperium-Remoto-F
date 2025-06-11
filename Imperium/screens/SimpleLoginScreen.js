@@ -9,9 +9,9 @@ import {
   StyleSheet,
   StatusBar,
   SafeAreaView,
-  Image,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -21,6 +21,8 @@ const SimpleLoginScreen = () => {
     senha: '',
   });
 
+  const navigation = useNavigation();
+
   const handleInputChange = (field, value) => {
     setLoginData(prev => ({
       ...prev,
@@ -29,17 +31,21 @@ const SimpleLoginScreen = () => {
   };
 
   const handleEntrar = () => {
-    // Implementar lógica de login
-    console.log('Login:', loginData);
+    const { login, senha } = loginData;
+
+    if (login.trim() === '' || senha.trim() === '') {
+      Alert.alert('Atenção', 'Por favor, preencha o login e a senha.');
+      return;
+    }
+
+    navigation.navigate('Home');
   };
 
-const navigation = useNavigation();
+  const handleCadastrar = () => {
+    navigation.navigate('Cadastro');
+  };
 
-const handleCadastrar = () => {
-  navigation.navigate('Cadastro');
-};
   const handleEsqueceuSenha = () => {
-    // Implementar recuperação de senha
     console.log('Esqueceu a senha');
   };
 
@@ -58,7 +64,6 @@ const handleCadastrar = () => {
           <View style={styles.content}>
             {/* Logo */}
             <View style={styles.logoContainer}>
-              {/* Placeholder para o logo do capacete espartano */}
               <View style={styles.logoPlaceholder}>
                 <Text style={styles.logoEmoji}>🛡️</Text>
               </View>
@@ -66,7 +71,6 @@ const handleCadastrar = () => {
 
             {/* Formulário */}
             <View style={styles.formContainer}>
-              {/* Campo Login */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Login:</Text>
                 <TextInput
@@ -79,7 +83,6 @@ const handleCadastrar = () => {
                 />
               </View>
 
-              {/* Campo Senha */}
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Senha:</Text>
                 <TextInput
@@ -92,7 +95,6 @@ const handleCadastrar = () => {
                 />
               </View>
 
-              {/* Link Esqueceu Senha */}
               <TouchableOpacity 
                 style={styles.forgotPasswordContainer}
                 onPress={handleEsqueceuSenha}
@@ -154,7 +156,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 255, 255, 0.1)',
     justifyContent: 'center',
     alignItems: 'center',
-    // Sombra para dar profundidade
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -190,7 +191,6 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     borderWidth: 2,
     borderColor: 'rgba(220, 20, 60, 0.6)',
-    // Sombra interna simulada
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -224,7 +224,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'rgba(220, 20, 60, 0.7)',
-    // Sombra para dar profundidade
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -246,7 +245,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 2,
     borderColor: 'rgba(220, 20, 60, 0.5)',
-    // Sombra mais sutil
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
