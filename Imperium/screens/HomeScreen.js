@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import {
   View,
   Text,
@@ -9,8 +9,15 @@ import {
   TouchableOpacity
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { CartContext } from '../context/CartContext';
 
 const HomeScreen = ({ navigation }) => {
+  const { addToCart, cartItems } = useContext(CartContext);
+
+  const getTotalItems = () => {
+    return cartItems.reduce((total, item) => total + item.quantity, 0);
+  };
+
   return (
     <View style={styles.container}>
       {/* Top Bar */}
@@ -20,8 +27,13 @@ const HomeScreen = ({ navigation }) => {
           placeholderTextColor="#555"
           style={styles.searchInput}
         />
-        <TouchableOpacity style={styles.iconButton}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.navigate('Cart')}>
           <Ionicons name="cart" size={24} color="#fff" />
+          {getTotalItems() > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>{getTotalItems()}</Text>
+            </View>
+          )}
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.iconButton}
@@ -39,7 +51,10 @@ const HomeScreen = ({ navigation }) => {
             <View key={index} style={styles.productCard}>
               <Image source={{ uri: item.image }} style={styles.productImage} />
               <Text style={styles.productTitle}>{item.title}</Text>
-              <Text style={styles.productPrice}>{item.price}</Text>
+              <Text style={styles.productPrice}>R$ {item.price}</Text>
+              <TouchableOpacity style={styles.addButton} onPress={() => addToCart(item)}>
+                <Text style={styles.addButtonText}>Adicionar</Text>
+              </TouchableOpacity>
             </View>
           ))}
         </ScrollView>
@@ -51,7 +66,10 @@ const HomeScreen = ({ navigation }) => {
             <View key={index} style={styles.productCard}>
               <Image source={{ uri: item.image }} style={styles.productImage} />
               <Text style={styles.productTitle}>{item.title}</Text>
-              <Text style={styles.productPrice}>{item.price}</Text>
+              <Text style={styles.productPrice}>R$ {item.price}</Text>
+              <TouchableOpacity style={styles.addButton} onPress={() => addToCart(item)}>
+                <Text style={styles.addButtonText}>Adicionar</Text>
+              </TouchableOpacity>
             </View>
           ))}
         </ScrollView>
@@ -63,7 +81,10 @@ const HomeScreen = ({ navigation }) => {
             <View key={index} style={styles.productCard}>
               <Image source={{ uri: item.image }} style={styles.productImage} />
               <Text style={styles.productTitle}>{item.title}</Text>
-              <Text style={styles.productPrice}>{item.price}</Text>
+              <Text style={styles.productPrice}>R$ {item.price}</Text>
+              <TouchableOpacity style={styles.addButton} onPress={() => addToCart(item)}>
+                <Text style={styles.addButtonText}>Adicionar</Text>
+              </TouchableOpacity>
             </View>
           ))}
         </ScrollView>
@@ -114,6 +135,21 @@ const styles = StyleSheet.create({
     padding: 6,
     marginLeft: 5
   },
+  cartBadge: {
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    backgroundColor: 'red',
+    borderRadius: 8,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+    zIndex: 1
+  },
+  cartBadgeText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold'
+  },
   content: {
     paddingHorizontal: 10,
     paddingTop: 10
@@ -151,6 +187,18 @@ const styles = StyleSheet.create({
     color: '#DC143C',
     fontWeight: 'bold',
     fontSize: 16
+  },
+  addButton: {
+    marginTop: 8,
+    backgroundColor: '#8B0000',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600'
   }
 });
 
