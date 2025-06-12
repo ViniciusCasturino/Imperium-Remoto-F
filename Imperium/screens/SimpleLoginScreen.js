@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ScrollView, // Importe o ScrollView
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -52,24 +53,26 @@ const SimpleLoginScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#8B0000" />
-      
+
       <LinearGradient
         colors={['#DC143C', '#8B0000', '#4A0000']}
         style={styles.gradient}
       >
-        <KeyboardAvoidingView 
+        <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardContainer}
+          style={styles.keyboardAvoidingView}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
-          <View style={styles.content}>
-            {/* Logo */}
+          <ScrollView
+            contentContainerStyle={styles.content} 
+            showsVerticalScrollIndicator={false} 
+          >
             <View style={styles.logoContainer}>
               <View style={styles.logoPlaceholder}>
                 <Text style={styles.logoEmoji}>🛡️</Text>
               </View>
             </View>
 
-            {/* Formulário */}
             <View style={styles.formContainer}>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Login:</Text>
@@ -95,7 +98,7 @@ const SimpleLoginScreen = () => {
                 />
               </View>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.forgotPasswordContainer}
                 onPress={handleEsqueceuSenha}
               >
@@ -105,23 +108,22 @@ const SimpleLoginScreen = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Botões */}
             <View style={styles.buttonContainer}>
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.primaryButton}
                 onPress={handleEntrar}
               >
                 <Text style={styles.primaryButtonText}>Entrar</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity 
+              <TouchableOpacity
                 style={styles.secondaryButton}
                 onPress={handleCadastrar}
               >
                 <Text style={styles.secondaryButtonText}>Cadastre-se</Text>
               </TouchableOpacity>
             </View>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </LinearGradient>
     </SafeAreaView>
@@ -135,11 +137,11 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  keyboardContainer: {
+  keyboardAvoidingView: {
     flex: 1,
   },
   content: {
-    flex: 1,
+    flexGrow: 1,
     paddingHorizontal: 40,
     paddingTop: 60,
     paddingBottom: 40,
@@ -169,7 +171,6 @@ const styles = StyleSheet.create({
     fontSize: 60,
   },
   formContainer: {
-    flex: 1,
     justifyContent: 'center',
     marginTop: -50,
   },
