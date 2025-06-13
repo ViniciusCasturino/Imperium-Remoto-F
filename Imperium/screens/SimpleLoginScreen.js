@@ -12,10 +12,11 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ScrollView, // Importe o ScrollView
+  ScrollView,
+  Image, 
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-
+const spartanHelmetImage = require('../assets/images/logo.png');
 const SimpleLoginScreen = () => {
   const [loginData, setLoginData] = useState({
     login: '',
@@ -64,12 +65,16 @@ const SimpleLoginScreen = () => {
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
         >
           <ScrollView
-            contentContainerStyle={styles.content} 
-            showsVerticalScrollIndicator={false} 
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
           >
             <View style={styles.logoContainer}>
               <View style={styles.logoPlaceholder}>
-                <Text style={styles.logoEmoji}>🛡️</Text>
+                <Image
+                  source={spartanHelmetImage}
+                  style={styles.logoImage}
+                  resizeMode="contain"
+                />
               </View>
             </View>
 
@@ -167,6 +172,10 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 8,
   },
+  logoImage: {
+    width: '80%',
+    height: '80%',
+  },
   logoEmoji: {
     fontSize: 60,
   },
@@ -234,11 +243,6 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 6,
   },
-  primaryButtonText: {
-    color: '#FFFFFF',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
   secondaryButton: {
     backgroundColor: 'rgba(139, 69, 19, 0.7)',
     borderRadius: 12,
@@ -254,6 +258,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
+  },
+    primaryButtonText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: 'bold',
   },
   secondaryButtonText: {
     color: '#FFFFFF',
