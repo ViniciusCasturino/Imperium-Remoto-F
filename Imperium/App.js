@@ -8,6 +8,7 @@ import HomeScreen from './screens/HomeScreen';
 import ConfigScreen from './screens/ConfigScreen';
 import CartScreen from './screens/CartScreen';
 import { CartProvider } from './context/CartContext';
+import AddressScreen from './screens/AddressScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -21,6 +22,7 @@ export default function App() {
           <Stack.Screen name="Home" component={HomeScreen} />
           <Stack.Screen name="Config" component={ConfigScreen} />
           <Stack.Screen name="Cart" component={CartScreen} />
+          <Stack.Screen name="Address" component={AddressScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </CartProvider>
