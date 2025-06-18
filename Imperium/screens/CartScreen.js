@@ -13,16 +13,18 @@ const CartScreen = () => {
     return sum + price * item.quantity;
   }, 0).toFixed(2);
 
+  const handleCheckout = () => {
+    navigation.navigate('Address');
+  };
+
   return (
     <View style={styles.container}>
-      {}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={25} color="#fff" />
         </TouchableOpacity>
         <Text style={styles.title}>Meu Carrinho</Text>
-        {}
-        <View style={{ width: 25 }} /> 
+        <View style={{ width: 25 }} />
       </View>
       <FlatList
         data={cartItems}
@@ -50,7 +52,7 @@ const CartScreen = () => {
         )}
       />
       <Text style={styles.total}>Total: R$ {total}</Text>
-      <TouchableOpacity style={styles.checkoutButton}>
+      <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
         <Text style={styles.checkoutText}>FINALIZAR COMPRA</Text>
         <Ionicons name="arrow-forward" size={20} color="#000" />
       </TouchableOpacity>
@@ -59,24 +61,15 @@ const CartScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: '#8B0000', 
-    padding: 16 
-  },
+  container: { flex: 1, backgroundColor: '#8B0000', padding: 16 },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between', 
+    justifyContent: 'space-between',
     marginBottom: 10,
-    marginTop: 20, 
+    marginTop: 20,
   },
-  title: { 
-    fontSize: 18, 
-    color: '#fff', 
-    textAlign: 'center', 
-    flex: 1 
-  },
+  title: { fontSize: 18, color: '#fff', textAlign: 'center', flex: 1 },
   item: { flexDirection: 'row', backgroundColor: '#fff', marginBottom: 10, borderRadius: 10 },
   image: { width: 100, height: 100, borderRadius: 8 },
   details: { flex: 1, padding: 10, justifyContent: 'center' },
@@ -98,10 +91,7 @@ const styles = StyleSheet.create({
     marginTop: 10
   },
   checkoutText: { fontWeight: 'bold', marginRight: 8 },
- 
-  backButton: { 
-  
-  }
+  backButton: {}
 });
 
 export default CartScreen;

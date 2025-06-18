@@ -1,4 +1,3 @@
-// screens/CadastroScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -34,16 +33,12 @@ const CadastroScreen = () => {
   };
 
   const handleCriarConta = () => {
-    // Aqui você pode chamar sua API de cadastro...
     console.log('Criar conta:', formData);
 
-    // Após cadastrar, volta para a tela de Login:
     navigation.goBack();
   };
 
   const handleContinuarSemLogin = () => {
-    // Se você quiser que “Continuar sem login” leve a outra rota (por exemplo "Home"),
-    // troque goBack() por navigation.navigate('Home');
     navigation.goBack();
   };
 
@@ -63,7 +58,6 @@ const CadastroScreen = () => {
             contentContainerStyle={styles.scrollContainer}
             showsVerticalScrollIndicator={false}
           >
-            {/* Header com Logo */}
             <View style={styles.header}>
               <View style={styles.logoContainer}>
                 <View style={styles.logoPlaceholder}>
@@ -74,7 +68,6 @@ const CadastroScreen = () => {
               </View>
             </View>
 
-            {/* Formulário de Cadastro */}
             <View style={styles.formContainer}>
               <View style={styles.inputGroup}>
                 <Text style={styles.inputLabel}>Nome Completo:</Text>
