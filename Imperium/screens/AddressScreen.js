@@ -24,7 +24,7 @@ const AddressScreen = () => {
     numero: '',
     complemento: '',
     bairro: '',
-    localidade: '', 
+    localidade: '',
     uf: '',
   });
   const [loading, setLoading] = useState(false);
@@ -74,7 +74,7 @@ const AddressScreen = () => {
     }
   };
 
-  const handleSaveAddress = () => {
+  const handleFinalizePurchase = () => {
     if (
       !address.logradouro ||
       !address.numero ||
@@ -87,9 +87,7 @@ const AddressScreen = () => {
       return;
     }
 
-    console.log('Endereço salvo:', address);
-    Alert.alert('Sucesso', 'Endereço salvo com sucesso!');
-    navigation.goBack();
+    navigation.navigate('Payment', { addressData: address });
   };
 
   return (
@@ -185,7 +183,7 @@ const AddressScreen = () => {
               editable={!loading}
             />
 
-            <Text style={styles.inputLabel}>Estado (UF):</Text> 
+            <Text style={styles.inputLabel}>Estado (UF):</Text>
             <TextInput
               style={styles.textInput}
               value={address.uf}
@@ -198,8 +196,9 @@ const AddressScreen = () => {
             />
           </View>
 
-          <TouchableOpacity style={styles.saveButton} onPress={handleSaveAddress}>
-            <Text style={styles.saveButtonText}>Continuar</Text>
+          <TouchableOpacity style={styles.finalizarCompraButton} onPress={handleFinalizePurchase}>
+            <Text style={styles.finalizarCompraButtonText}>FINALIZAR COMPRA</Text>
+            <Ionicons name="arrow-forward" size={20} color="#000" />
           </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -271,17 +270,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  saveButton: {
+  finalizarCompraButton: {
     backgroundColor: '#fff',
-    borderRadius: 10,
-    paddingVertical: 15,
-    alignItems: 'center',
+    flexDirection: 'row',
     justifyContent: 'center',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 10,
+    marginTop: 10,
   },
-  saveButtonText: {
-    color: 'black',
+  finalizarCompraButtonText: {
+    color: '#000',
     fontSize: 18,
     fontWeight: 'bold',
+    marginRight: 8,
   },
 });
 
