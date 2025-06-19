@@ -5,24 +5,32 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  SafeAreaView, 
-  Alert, 
+  SafeAreaView,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
 
-const ConfigScreen = ({ navigation }) => {
+const ConfigScreen = () => {
+  const navigation = useNavigation();
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.headerContainer}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={25} color="#fff" />
+        </TouchableOpacity>
+
         <Text style={styles.headerText}>Perfil</Text>
-
-        <Image
-          source={require('../assets/images/avatar.png')}
-          style={styles.avatar}
-        />
-
-        <Text style={styles.username}>ViniZERAAAA171</Text>
+        <View style={{ width: 25 }} />
       </View>
+
+      <Image
+        source={require('../assets/images/avatar.png')}
+        style={styles.avatar}
+      />
+
+      <Text style={styles.username}>ViniZERAAAA171</Text>
 
       <View style={styles.optionsContainer}>
         <Option
@@ -69,15 +77,19 @@ const styles = StyleSheet.create({
   },
   headerContainer: {
     width: '100%',
-    padding: 20,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 10,
+    marginTop: 20,
   },
   headerText: {
     fontSize: 22,
     color: '#fff',
     fontWeight: 'bold',
-    marginBottom: 10,
-    marginTop: 20,
+    flex: 1,
+    textAlign: 'center',
   },
   avatar: {
     width: 100,
@@ -117,6 +129,9 @@ const styles = StyleSheet.create({
   optionText: {
     fontSize: 16,
     color: '#fff',
+  },
+  backButton: {
+    padding: 5,
   },
 });
 
