@@ -1,0 +1,219 @@
+import React, { useEffect, useContext, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  FlatList,
+} from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { CartContext } from '../context/CartContext';
+
+const OrderConfirmationScreen = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
+
+  const { confirmedCartItems, totalAmount } = route.params || { confirmedCartItems: [], totalAmount: '0.00' };
+
+  const { clearCart } = useContext(CartContext);
+
+  const handleGoHome = () => {
+    clearCart();
+    navigation.replace('Home');
+  };
+
+  const ListHeader = () => (
+    <>
+      <View style={styles.header}>
+        <Text style={styles.title}>Confirmação de Compra</Text>
+      </View>
+
+      <View style={styles.confirmationBox}>
+        <Image
+          source={require('../assets/images/package_icon.png')}
+          style={styles.packageIcon}
+        />
+        <Text style={styles.confirmationText}>Compra finalizada com sucesso!</Text>
+      </View>
+
+      {confirmedCartItems.length > 0 && (
+        <View style={styles.orderSummary}>
+          <Text style={styles.summaryTitle}>Resumo do Pedido:</Text>
+        </View>
+      )}
+    </>
+  );
+
+  const ListFooter = () => (
+    <>
+      {confirmedCartItems.length > 0 && (
+        <View style={styles.totalContainer}>
+          <Text style={styles.totalText}>Total:</Text>
+          <Text style={styles.totalAmountText}>R$ {totalAmount.replace('.', ',')}</Text>
+        </View>
+      )}
+      <View style={{ height: 80 }} />
+    </>
+  );
+
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <FlatList
+        data={confirmedCartItems}
+        keyExtractor={(item, index) => item.title + index}
+        renderItem={({ item }) => (
+          <View style={styles.summaryItem}>
+            <Text style={styles.summaryItemName}>{item.title} ({item.quantity}x)</Text>
+            <Text style={styles.summaryItemPrice}>R$ {(parseFloat(item.price.replace(',', '.')) * item.quantity).toFixed(2).replace('.', ',')}</Text>
+          </View>
+        )}
+        ListHeaderComponent={ListHeader}
+        ListFooterComponent={ListFooter}
+        contentContainerStyle={styles.flatListContent}
+      />
+
+      <View style={styles.bottomButtonContainer}>
+        <TouchableOpacity style={styles.homeButton} onPress={handleGoHome}>
+          <Text style={styles.homeButtonText}>VOLTAR AO INÍCIO</Text>
+          <Ionicons name="arrow-forward" size={20} color="#000" />
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#8B0000',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
+  title: {
+    fontSize: 22,
+    color: '#fff',
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  flatListContent: {
+    paddingHorizontal: 16,
+    paddingTop: 0,
+  },
+  confirmationBox: {
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 20,
+    padding: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '90%',
+    alignSelf: 'center',
+    aspectRatio: 1,
+    marginBottom: 40,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 10,
+  },
+  packageIcon: {
+    width: 120,
+    height: 120,
+    resizeMode: 'contain',
+    marginBottom: 20,
+  },
+  confirmationText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#fff',
+    textAlign: 'center',
+  },
+  orderSummary: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 10,
+    padding: 15,
+    marginTop: 20,
+  },
+  summaryTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.3)',
+    paddingBottom: 5,
+  },
+  summaryItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 5,
+  },
+  summaryItemName: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  summaryItemPrice: {
+    color: '#FFD700',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  totalContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 15,
+    paddingTop: 10,
+    borderTopWidth: 1,
+    borderTopColor: 'rgba(255,255,255,0.3)',
+  },
+  totalText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  totalAmountText: {
+    color: '#FFD700',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  bottomButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: '#8B0000',
+    borderTopWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  homeButton: {
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  homeButtonText: {
+    color: '#000',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginRight: 8,
+  },
+});
+
+export default OrderConfirmationScreen;

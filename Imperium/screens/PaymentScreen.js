@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react'; 
 import {
   View,
   Text,
@@ -15,9 +15,11 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { CartContext } from '../context/CartContext';
 
 const PaymentScreen = () => {
   const navigation = useNavigation();
+  const { cartItems } = useContext(CartContext);
 
   const [cardData, setCardData] = useState({
     cardNumber: '',
@@ -59,10 +61,17 @@ const PaymentScreen = () => {
       return;
     }
 
-    console.log('Dados do Cartão para processamento:', cardData);
-    Alert.alert('Sucesso', 'Pagamento processado com sucesso!');
+    const totalAmount = cartItems.reduce((sum, item) => {
+      const price = parseFloat(item.price.replace(',', '.'));
+      return sum + price * item.quantity;
+    }, 0).toFixed(2);
 
-    navigation.popToTop();
+
+    navigation.replace('OrderConfirmation', {
+        confirmedCartItems: cartItems,
+        totalAmount: totalAmount,
+    });
+
   };
 
   return (
@@ -179,7 +188,9 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#8B0000',
   },
-  keyboardAvoidingView: {flex: 1,},
+  keyboardAvoidingView: {
+    flex: 1,
+  },
   scrollContent: {
     flexGrow: 1,
     padding: 16,
@@ -253,7 +264,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
   },
-
   formContainer: {
     marginBottom: 30,
   },
@@ -285,7 +295,6 @@ const styles = StyleSheet.create({
   halfInput: {
     flex: 1,
   },
-
   bottomButtonContainer: {
     position: 'absolute',
     bottom: 0,
@@ -296,7 +305,6 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: 'rgba(255,255,255,0.1)',
   },
-
   finalizarPagamentoButton: {
     backgroundColor: '#fff',
     flexDirection: 'row',
@@ -304,7 +312,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 14,
     borderRadius: 10,
-
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
