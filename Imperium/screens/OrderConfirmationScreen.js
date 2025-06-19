@@ -16,7 +16,7 @@ const OrderConfirmationScreen = () => {
   const navigation = useNavigation();
   const route = useRoute();
 
-  const { confirmedCartItems, totalAmount } = route.params || { confirmedCartItems: [], totalAmount: '0.00' };
+  const { confirmedCartItems, totalAmount, deliveryAddress } = route.params || { confirmedCartItems: [], totalAmount: '0.00', deliveryAddress: {} };
 
   const { clearCart } = useContext(CartContext);
 
@@ -24,7 +24,18 @@ const OrderConfirmationScreen = () => {
     clearCart();
     navigation.replace('Home');
   };
-
+  const formatAddress = (address) => {
+    if (!address || Object.keys(address).length === 0) {
+        return 'Endereço não disponível';
+    }
+    const { logradouro, numero, complemento, bairro, localidade, uf } = address;
+    let formatted = `${logradouro}, ${numero}`;
+    if (complemento) {
+        formatted += ` - ${complemento}`;
+    }
+    formatted += `\n${bairro}, ${localidade} - ${uf}`;
+    return formatted;
+  };
   const ListHeader = () => (
     <>
       <View style={styles.header}>
@@ -55,6 +66,15 @@ const OrderConfirmationScreen = () => {
           <Text style={styles.totalAmountText}>R$ {totalAmount.replace('.', ',')}</Text>
         </View>
       )}
+
+      <View style={styles.deliveryInfoContainer}>
+        <View style={styles.deliveryRow}>
+            <Text style={styles.deliveryLabel}>Frete:</Text>
+            <Text style={styles.deliveryValue}>GRÁTIS</Text>
+        </View>
+        <Text style={styles.addressLabel}>Enviado para:</Text>
+        <Text style={styles.addressText}>{formatAddress(deliveryAddress)}</Text>
+      </View>
       <View style={{ height: 80 }} />
     </>
   );
@@ -184,6 +204,40 @@ const styles = StyleSheet.create({
     color: '#FFD700',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  deliveryInfoContainer: {
+    width: '100%',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 10,
+    padding: 15,
+    marginTop: 15,
+  },
+  deliveryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  deliveryLabel: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  deliveryValue: {
+    color: '#32CD32',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  addressLabel: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    marginTop: 5,
+  },
+  addressText: {
+    color: '#ccc',
+    fontSize: 14,
+    lineHeight: 20,
   },
   bottomButtonContainer: {
     position: 'absolute',
