@@ -7,10 +7,14 @@ import {
   SafeAreaView,
   Image,
   FlatList,
+  Alert,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { CartContext } from '../context/CartContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const ORDERS_STORAGE_KEY = '@my_orders';
 
 const OrderConfirmationScreen = () => {
   const navigation = useNavigation();
@@ -20,12 +24,42 @@ const OrderConfirmationScreen = () => {
 
   const { clearCart } = useContext(CartContext);
 
+  useEffect(() => {
+    const saveOrder = async () => {
+      if (!confirmedCartItems || confirmedCartItems.length === 0) {
+        return;
+      }
+
+      try {
+        const existingOrders = await AsyncStorage.getItem(ORDERS_STORAGE_KEY);
+        const orders = existingOrders ? JSON.parse(existingOrders) : [];
+
+        const newOrder = {
+          id: `order_${Date.now()}`,
+          orderDate: new Date().toLocaleDateString('pt-BR'),
+          products: confirmedCartItems,
+          totalAmount: totalAmount,
+          deliveryAddress: deliveryAddress,
+        };
+
+        const updatedOrders = [...orders, newOrder];
+        await AsyncStorage.setItem(ORDERS_STORAGE_KEY, JSON.stringify(updatedOrders));
+        console.log('Pedido salvo com sucesso:', newOrder);
+      } catch (error) {
+        console.error("Erro ao salvar pedido no AsyncStorage:", error);
+        Alert.alert('Erro', 'Não foi possível salvar o seu pedido.');
+      }
+    };
+    saveOrder();
+  }, [confirmedCartItems, totalAmount, deliveryAddress]);
+
   const handleGoHome = () => {
     clearCart();
     navigation.replace('Home');
   };
+
   const formatAddress = (address) => {
-    if (!address || Object.keys(address).length === 0) {
+    if (!address || Object.keys(address).length === 0 || !address.logradouro) {
         return 'Endereço não disponível';
     }
     const { logradouro, numero, complemento, bairro, localidade, uf } = address;
@@ -36,6 +70,7 @@ const OrderConfirmationScreen = () => {
     formatted += `\n${bairro}, ${localidade} - ${uf}`;
     return formatted;
   };
+
   const ListHeader = () => (
     <>
       <View style={styles.header}>
@@ -236,8 +271,9 @@ const styles = StyleSheet.create({
   },
   addressText: {
     color: '#ccc',
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 13,
+    lineHeight: 18,
+    marginTop: 5,
   },
   bottomButtonContainer: {
     position: 'absolute',
