@@ -38,13 +38,16 @@ const PaymentScreen = () => {
       const cleanedValue = value.replace(/\D/g, '').substring(0, 16);
       setCardData(prev => ({ ...prev, [field]: cleanedValue }));
     } else if (field === 'expiryDate') {
-        const cleanedValue = value.replace(/\D/g, '').substring(0, 4);
-        setCardData(prev => ({ ...prev, [field]: cleanedValue }));
+      const cleanedValue = value.replace(/\D/g, '').substring(0, 4);
+      setCardData(prev => ({ ...prev, [field]: cleanedValue }));
     } else if (field === 'cvv') {
-        const cleanedValue = value.replace(/\D/g, '').substring(0, 4);
-        setCardData(prev => ({ ...prev, [field]: cleanedValue }));
-    }
-    else {
+      const cleanedValue = value.replace(/\D/g, '').substring(0, 4);
+      setCardData(prev => ({ ...prev, [field]: cleanedValue }));
+    } else if (field === 'cardHolderName') {
+      const cleanedValue = value.replace(/[^a-zA-Z\s]/g, '');
+      const trimmedValue = cleanedValue.substring(0, 20);
+      setCardData(prev => ({ ...prev, [field]: trimmedValue }));
+    } else {
       setCardData(prev => ({
         ...prev,
         [field]: value
@@ -53,9 +56,16 @@ const PaymentScreen = () => {
   };
 
   const handleFinalizePayment = () => {
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    if (!nameRegex.test(cardData.cardHolderName.trim()) || cardData.cardHolderName.trim().length === 0 || cardData.cardHolderName.trim().length > 20) {
+        Alert.alert(
+            'Atenção',
+            'O Nome do titular do cartão deve ser preenchido .'
+        );
+        return;
+    }
     if (
       formattedCardNumber.replace(/\s/g, '').length !== 16 ||
-      cardData.cardHolderName.trim() === '' ||
       formattedExpiryDate.length !== 5 ||
       (cardData.cvv.length !== 3 && cardData.cvv.length !== 4)
     ) {
@@ -69,117 +79,119 @@ const PaymentScreen = () => {
     }, 0).toFixed(2);
 
     navigation.replace('OrderConfirmation', {
-        confirmedCartItems: cartItems,
-        totalAmount: totalAmount,
-        deliveryAddress: addressData,
+      confirmedCartItems: cartItems,
+      totalAmount: totalAmount,
+      deliveryAddress: addressData,
     });
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      >
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-              <Ionicons name="arrow-back" size={25} color="#fff" />
-            </TouchableOpacity>
-            <Text style={styles.title}>Pagamento</Text>
-            <View style={{ width: 25 }} />
-          </View>
-
-          <LinearGradient
-            colors={['#FF5722', '#F44336', '#D32F2F']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.cardContainer}
-          >
-            <View style={styles.cardHeader}>
-              <Image source={require('../assets/images/chip.png')} style={styles.chipIcon} />
-              <Image source={require('../assets/images/mastercard_logo.png')} style={styles.cardTypeIcon} />
+      <View style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={{ flex: 1 }}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
+        >
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+                <Ionicons name="arrow-back" size={25} color="#fff" />
+              </TouchableOpacity>
+              <Text style={styles.title}>Pagamento</Text>
+              <View style={{ width: 25 }} />
             </View>
-            <Text style={styles.cardNumberDisplay}>{formattedCardNumber || '0000 0000 0000 0000'}</Text>
-            <View style={styles.cardFooter}>
-              <Text style={styles.cardHolderNameDisplay}>{cardData.cardHolderName || 'Nome'}</Text>
-              <Text style={styles.cardExpiryDisplay}>{formattedExpiryDate || '00/00'}</Text>
-            </View>
-          </LinearGradient>
 
-          <View style={styles.formContainer}>
-            <View style={styles.inputGroup}>
-              <View style={styles.inputIconContainer}>
-                <Ionicons name="card" size={20} color="#fff" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.textInput}
-                  value={formattedCardNumber}
-                  onChangeText={(text) => handleInputChange('cardNumber', text)}
-                  keyboardType="numeric"
-                  placeholder="Número do cartão"
-                  placeholderTextColor="#ccc"
-                />
+            <LinearGradient
+              colors={['#FF5722', '#F44336', '#D32F2F']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.cardContainer}
+            >
+              <View style={styles.cardHeader}>
+                <Image source={require('../assets/images/chip.png')} style={styles.chipIcon} />
+                <Image source={require('../assets/images/mastercard_logo.png')} style={styles.cardTypeIcon} />
               </View>
-            </View>
-
-            <View style={styles.inputGroup}>
-              <View style={styles.inputIconContainer}>
-                <Ionicons name="person" size={20} color="#fff" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.textInput}
-                  value={cardData.cardHolderName}
-                  onChangeText={(text) => handleInputChange('cardHolderName', text)}
-                  placeholder="Nome do titular do cartão"
-                  placeholderTextColor="#ccc"
-                  autoCapitalize="words"
-                />
+              <Text style={styles.cardNumberDisplay}>{formattedCardNumber || '0000 0000 0000 0000'}</Text>
+              <View style={styles.cardFooter}>
+                <Text style={styles.cardHolderNameDisplay}>{cardData.cardHolderName || 'Nome'}</Text>
+                <Text style={styles.cardExpiryDisplay}>{formattedExpiryDate || '00/00'}</Text>
               </View>
-            </View>
+            </LinearGradient>
 
-            <View style={styles.rowInputs}>
-              <View style={[styles.inputGroup, styles.halfInput]}>
+            <View style={styles.formContainer}>
+              <View style={styles.inputGroup}>
                 <View style={styles.inputIconContainer}>
-                  <Ionicons name="calendar" size={20} color="#fff" style={styles.inputIcon} />
+                  <Ionicons name="card" size={20} color="#fff" style={styles.inputIcon} />
                   <TextInput
                     style={styles.textInput}
-                    value={formattedExpiryDate}
-                    onChangeText={(text) => handleInputChange('expiryDate', text)}
+                    value={formattedCardNumber}
+                    onChangeText={(text) => handleInputChange('cardNumber', text)}
                     keyboardType="numeric"
-                    maxLength={5}
-                    placeholder="Validade"
+                    placeholder="Número do cartão"
                     placeholderTextColor="#ccc"
                   />
                 </View>
               </View>
 
-              <View style={[styles.inputGroup, styles.halfInput, { marginLeft: 10 }]}>
+              <View style={styles.inputGroup}>
                 <View style={styles.inputIconContainer}>
-                  <Ionicons name="lock-closed" size={20} color="#fff" style={styles.inputIcon} />
+                  <Ionicons name="person" size={20} color="#fff" style={styles.inputIcon} />
                   <TextInput
                     style={styles.textInput}
-                    value={cardData.cvv}
-                    onChangeText={(text) => handleInputChange('cvv', text)}
-                    keyboardType="numeric"
-                    maxLength={4}
-                    secureTextEntry
-                    placeholder="CVV"
+                    value={cardData.cardHolderName}
+                    onChangeText={(text) => handleInputChange('cardHolderName', text)}
+                    placeholder="Nome do titular do cartão"
                     placeholderTextColor="#ccc"
+                    autoCapitalize="words"
+                    maxLength={20}
                   />
                 </View>
               </View>
-            </View>
-          </View>
-        </ScrollView>
 
+              <View style={styles.rowInputs}>
+                <View style={[styles.inputGroup, styles.halfInput]}>
+                  <View style={styles.inputIconContainer}>
+                    <Ionicons name="calendar" size={20} color="#fff" style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.textInput}
+                      value={formattedExpiryDate}
+                      onChangeText={(text) => handleInputChange('expiryDate', text)}
+                      keyboardType="numeric"
+                      maxLength={5}
+                      placeholder="Validade"
+                      placeholderTextColor="#ccc"
+                    />
+                  </View>
+                </View>
+
+                <View style={[styles.inputGroup, styles.halfInput, { marginLeft: 10 }]}>
+                  <View style={styles.inputIconContainer}>
+                    <Ionicons name="lock-closed" size={20} color="#fff" style={styles.inputIcon} />
+                    <TextInput
+                      style={styles.textInput}
+                      value={cardData.cvv}
+                      onChangeText={(text) => handleInputChange('cvv', text)}
+                      keyboardType="numeric"
+                      maxLength={4}
+                      secureTextEntry
+                      placeholder="CVV"
+                      placeholderTextColor="#ccc"
+                    />
+                  </View>
+                </View>
+              </View>
+            </View>
+             <View style={{ height: 80 }} />
+          </ScrollView>
+        </KeyboardAvoidingView>
         <View style={styles.bottomButtonContainer}>
-            <TouchableOpacity style={styles.finalizarPagamentoButton} onPress={handleFinalizePayment}>
-                <Text style={styles.finalizarPagamentoButtonText}>FINALIZAR PAGAMENTO</Text>
-                <Ionicons name="arrow-forward" size={20} color="#000" />
-            </TouchableOpacity>
+          <TouchableOpacity style={styles.finalizarPagamentoButton} onPress={handleFinalizePayment}>
+            <Text style={styles.finalizarPagamentoButtonText}>FINALIZAR PAGAMENTO</Text>
+            <Ionicons name="arrow-forward" size={20} color="#000" />
+          </TouchableOpacity>
         </View>
-
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 };
@@ -189,14 +201,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#8B0000',
   },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
   scrollContent: {
     flexGrow: 1,
     padding: 16,
     paddingTop: 40,
-    paddingBottom: 0,
   },
   header: {
     flexDirection: 'row',

@@ -1,5 +1,5 @@
 import React, { useContext } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, FlatList, Alert } from 'react-native';
 import { CartContext } from '../context/CartContext';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -12,8 +12,14 @@ const CartScreen = () => {
     const price = parseFloat(item.price.replace(',', '.'));
     return sum + price * item.quantity;
   }, 0).toFixed(2);
+  
+  const isCartEmpty = cartItems.length === 0;
 
   const handleCheckout = () => {
+    if (isCartEmpty) {
+      Alert.alert('Carrinho Vazio', 'Adicione itens ao carrinho para finalizar a compra.');
+      return;
+    }
     navigation.navigate('Address');
   };
 
@@ -26,36 +32,60 @@ const CartScreen = () => {
         <Text style={styles.title}>Meu Carrinho</Text>
         <View style={{ width: 25 }} />
       </View>
-      <FlatList
-        data={cartItems}
-        keyExtractor={(item) => item.title}
-        renderItem={({ item }) => (
-          <View style={styles.item}>
-            <Image source={{ uri: item.image }} style={styles.image} />
-            <View style={styles.details}>
-              <Text style={styles.name}>{item.title}</Text>
-              <Text style={styles.price}>R$ {item.price}</Text>
-              <View style={styles.controls}>
-                <TouchableOpacity onPress={() => updateQuantity(item.title, -1)}>
-                  <Text style={styles.qtyButton}>-</Text>
-                </TouchableOpacity>
-                <Text style={styles.qty}>{item.quantity}</Text>
-                <TouchableOpacity onPress={() => updateQuantity(item.title, 1)}>
-                  <Text style={styles.qtyButton}>+</Text>
+
+      {isCartEmpty ? (
+        <View style={styles.emptyCartContainer}>
+          <Ionicons name="cart-outline" size={100} color="#ccc" />
+          <Text style={styles.emptyCartText}>Seu carrinho está vazio!</Text>
+          <Text style={styles.emptyCartSubText}>Adicione alguns produtos para começar a comprar.</Text>
+          <TouchableOpacity
+            style={styles.continueShoppingButton}
+            onPress={() => navigation.navigate('Home')}
+          >
+            <Text style={styles.continueShoppingText}>Continuar Comprando</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <FlatList
+          data={cartItems}
+          keyExtractor={(item) => item.title}
+          renderItem={({ item }) => (
+            <View style={styles.item}>
+              <Image source={{ uri: item.image }} style={styles.image} />
+              <View style={styles.details}>
+                <Text style={styles.name}>{item.title}</Text>
+                <Text style={styles.price}>R$ {item.price}</Text>
+                <View style={styles.controls}>
+                  <TouchableOpacity onPress={() => updateQuantity(item.title, -1)}>
+                    <Text style={styles.qtyButton}>-</Text>
+                  </TouchableOpacity>
+                  <Text style={styles.qty}>{item.quantity}</Text>
+                  <TouchableOpacity onPress={() => updateQuantity(item.title, 1)}>
+                    <Text style={styles.qtyButton}>+</Text>
+                  </TouchableOpacity>
+                </View>
+                <TouchableOpacity onPress={() => removeFromCart(item.title)} style={styles.removeBtn}>
+                  <Text style={styles.removeText}>REMOVER</Text>
                 </TouchableOpacity>
               </View>
-              <TouchableOpacity onPress={() => removeFromCart(item.title)} style={styles.removeBtn}>
-                <Text style={styles.removeText}>REMOVER</Text>
-              </TouchableOpacity>
             </View>
-          </View>
-        )}
-      />
-      <Text style={styles.total}>Total: R$ {total}</Text>
-      <TouchableOpacity style={styles.checkoutButton} onPress={handleCheckout}>
-        <Text style={styles.checkoutText}>FINALIZAR COMPRA</Text>
-        <Ionicons name="arrow-forward" size={20} color="#000" />
-      </TouchableOpacity>
+          )}
+        />
+      )}
+
+      {!isCartEmpty && (
+        <>
+          <Text style={styles.total}>Total: R$ {total}</Text>
+          <TouchableOpacity
+            style={styles.checkoutButton} 
+            onPress={handleCheckout}
+            disabled={isCartEmpty}
+          >
+            <Text style={styles.checkoutText}>FINALIZAR COMPRA</Text>
+            <Ionicons name="arrow-forward" size={20} color="#000" />
+          </TouchableOpacity>
+        </>
+      )}
     </View>
   );
 };
@@ -91,7 +121,43 @@ const styles = StyleSheet.create({
     marginTop: 10
   },
   checkoutText: { fontWeight: 'bold', marginRight: 8 },
-  backButton: {}
+  backButton: {},
+  emptyCartContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyCartText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginTop: 20,
+    textAlign: 'center',
+  },
+  emptyCartSubText: {
+    fontSize: 16,
+    color: '#ccc',
+    marginTop: 10,
+    textAlign: 'center',
+  },
+  continueShoppingButton: {
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 8,
+    marginTop: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  continueShoppingText: {
+    color: '#8B0000',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
 export default CartScreen;
