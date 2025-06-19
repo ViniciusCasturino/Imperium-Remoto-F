@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react'; 
+import React, { useState, useContext } from 'react';
 import {
   View,
   Text,
@@ -13,13 +13,15 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { CartContext } from '../context/CartContext';
 
 const PaymentScreen = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const { cartItems } = useContext(CartContext);
+  const addressData = route.params?.addressData || {};
 
   const [cardData, setCardData] = useState({
     cardNumber: '',
@@ -66,12 +68,11 @@ const PaymentScreen = () => {
       return sum + price * item.quantity;
     }, 0).toFixed(2);
 
-
     navigation.replace('OrderConfirmation', {
         confirmedCartItems: cartItems,
         totalAmount: totalAmount,
+        deliveryAddress: addressData,
     });
-
   };
 
   return (

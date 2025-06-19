@@ -86,7 +86,6 @@ const AddressScreen = () => {
       Alert.alert('Atenção', 'Por favor, preencha todos os campos obrigatórios.');
       return;
     }
-
     navigation.navigate('Payment', { addressData: address });
   };
 
