@@ -10,9 +10,13 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
+
+const API_BASE_URL = 'https://bbf8-200-218-233-195.ngrok-free.app';
 
 const CadastroScreen = () => {
   const navigation = useNavigation();
@@ -20,10 +24,12 @@ const CadastroScreen = () => {
   const [formData, setFormData] = useState({
     nomeCompleto: '',
     email: '',
+    username: '',
     telefone: '',
     senha: '',
     confirmarSenha: '',
   });
+  const [loading, setLoading] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -32,10 +38,85 @@ const CadastroScreen = () => {
     }));
   };
 
-  const handleCriarConta = () => {
-    console.log('Criar conta:', formData);
+  const handleCriarConta = async () => {
+    const { nomeCompleto, email, username, senha, confirmarSenha } = formData;
 
-    navigation.goBack();
+    if (!nomeCompleto.trim() || !email.trim() || !username.trim() || !senha.trim() || !confirmarSenha.trim()) {
+      Alert.alert('Atenção', 'Por favor, preencha todos os campos obrigatórios.');
+      return;
+    }
+
+    if (senha !== confirmarSenha) {
+      Alert.alert('Atenção', 'A senha e a confirmação de senha não coincidem.');
+      return;
+    }
+
+    if (senha.length < 6) {
+      Alert.alert('Atenção', 'A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Atenção', 'Por favor, insira um formato de email válido.');
+      return;
+    }
+
+    const usernameRegex = /^[a-zA-Z0-9]+$/;
+    if (!usernameRegex.test(username)) {
+      Alert.alert('Atenção', 'O nome de usuário deve conter apenas letras e números, sem espaços ou caracteres especiais.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const payload = {
+        name: nomeCompleto.trim(),
+        email: email.trim(),
+        username: username.trim(),
+        password: senha.trim(),
+      };
+
+      console.log('Enviando payload para API:', JSON.stringify(payload));
+      const requestUrl = `${API_BASE_URL}/auth/signup`;
+      console.log('URL da Requisição:', requestUrl);
+
+      const response = await fetch(requestUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      console.log('Status da Resposta da API:', response.status);
+      console.log('response.ok:', response.ok);
+
+      const data = response.status === 204 ? null : await response.json();
+      console.log('Dados da Resposta da API:', data);
+
+      if (response.ok) {
+        Alert.alert('Sucesso', 'Conta criada com sucesso! Por favor, faça login.');
+        navigation.goBack();
+      } else {
+        let errorMessage = 'Erro ao criar conta. Tente novamente.';
+        if (data && data.message) {
+          errorMessage = data.message;
+        } else if (response.status === 409) {
+          errorMessage = 'Nome de usuário ou email já cadastrado. Por favor, tente outro.';
+        } else if (response.status === 400) {
+          errorMessage = data.details || 'Dados inválidos. Verifique as informações fornecidas.';
+        }
+        Alert.alert('Erro no Cadastro', errorMessage);
+      }
+    } catch (error) {
+      console.error('Erro na requisição de cadastro:', error);
+      Alert.alert('Erro de Conexão', 'Não foi possível conectar ao servidor. Verifique se o backend está rodando, se a URL do ngrok está ativa e atualizada, e sua conexão com a internet.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleContinuarSemLogin = () => {
@@ -75,8 +156,9 @@ const CadastroScreen = () => {
                   style={styles.textInput}
                   value={formData.nomeCompleto}
                   onChangeText={text => handleInputChange('nomeCompleto', text)}
-                  placeholder=""
+                  placeholder="Seu nome completo"
                   placeholderTextColor="#999"
+                  autoCapitalize="words"
                 />
               </View>
 
@@ -86,9 +168,21 @@ const CadastroScreen = () => {
                   style={styles.textInput}
                   value={formData.email}
                   onChangeText={text => handleInputChange('email', text)}
-                  placeholder=""
+                  placeholder="seu.email@exemplo.com"
                   placeholderTextColor="#999"
                   keyboardType="email-address"
+                  autoCapitalize="none"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>Nome de Usuário:</Text>
+                <TextInput
+                  style={styles.textInput}
+                  value={formData.username}
+                  onChangeText={text => handleInputChange('username', text)}
+                  placeholder="Seu nome de usuário único"
+                  placeholderTextColor="#999"
                   autoCapitalize="none"
                 />
               </View>
@@ -99,7 +193,7 @@ const CadastroScreen = () => {
                   style={styles.textInput}
                   value={formData.telefone}
                   onChangeText={text => handleInputChange('telefone', text)}
-                  placeholder=""
+                  placeholder="(XX) XXXXX-XXXX"
                   placeholderTextColor="#999"
                   keyboardType="phone-pad"
                 />
@@ -111,7 +205,7 @@ const CadastroScreen = () => {
                   style={styles.textInput}
                   value={formData.senha}
                   onChangeText={text => handleInputChange('senha', text)}
-                  placeholder=""
+                  placeholder="Mínimo 6 caracteres"
                   placeholderTextColor="#999"
                   secureTextEntry
                 />
@@ -123,28 +217,33 @@ const CadastroScreen = () => {
                   style={styles.textInput}
                   value={formData.confirmarSenha}
                   onChangeText={text => handleInputChange('confirmarSenha', text)}
-                  placeholder=""
+                  placeholder="Confirme sua senha"
                   placeholderTextColor="#999"
                   secureTextEntry
                 />
               </View>
             </View>
 
-            {/* Botões */}
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.primaryButton}
                 onPress={handleCriarConta}
+                disabled={loading}
               >
-                <Text style={styles.primaryButtonText}>Criar Conta</Text>
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.primaryButtonText}>Criar Conta</Text>
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.secondaryButton}
                 onPress={handleContinuarSemLogin}
+                disabled={loading}
               >
                 <Text style={styles.secondaryButtonText}>
-                  Continuar sem login
+                  Voltar
                 </Text>
               </TouchableOpacity>
             </View>
