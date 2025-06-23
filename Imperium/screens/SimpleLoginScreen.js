@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-
 import {
   View,
   Text,
@@ -13,34 +12,98 @@ import {
   Platform,
   Alert,
   ScrollView,
-  Image, 
+  Image,
+  ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 const spartanHelmetImage = require('../assets/images/logo.png');
+
+const API_BASE_URL = 'https://bbf8-200-218-233-195.ngrok-free.app';
+
 const SimpleLoginScreen = () => {
   const [loginData, setLoginData] = useState({
     login: '',
     senha: '',
   });
+  const [loading, setLoading] = useState(false);
 
   const navigation = useNavigation();
 
   const handleInputChange = (field, value) => {
     setLoginData(prev => ({
       ...prev,
-      [field]: value
+      [field]: value,
     }));
   };
 
-  const handleEntrar = () => {
+  const handleEntrar = async () => {
     const { login, senha } = loginData;
 
-    if (login.trim() === '' || senha.trim() === '') {
-      Alert.alert('Atenção', 'Por favor, preencha o login e a senha.');
+    if (!login.trim() || !senha.trim()) {
+      Alert.alert('Atenção', 'Por favor, preencha o login (email) e a senha.');
       return;
     }
 
-    navigation.navigate('Home');
+    setLoading(true);
+
+    try {
+      const payload = {
+        email: login.trim(),
+        password: senha.trim(),
+      };
+
+      console.log('Enviando payload de login para API:', JSON.stringify(payload));
+      const requestUrl = `${API_BASE_URL}/auth/signin`;
+      console.log('URL da Requisição de Login:', requestUrl);
+
+      const response = await fetch(requestUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      console.log('Status da Resposta da API (Login):', response.status);
+      console.log('response.ok (Login):', response.ok);
+
+      let data = null;
+      let rawResponseText = null;
+      try {
+        rawResponseText = await response.text();
+        if (response.status !== 204 && rawResponseText) {
+            data = JSON.parse(rawResponseText);
+        }
+      } catch (jsonError) {
+        console.error('Erro ao parsear JSON da resposta:', jsonError);
+        console.log('Resposta bruta do servidor (não JSON ou com erro de parse):', rawResponseText);
+      }
+
+      console.log('Dados da Resposta da API (Login):', data);
+
+      if (response.ok) {
+        Alert.alert('Sucesso', 'Login realizado com sucesso!');
+        navigation.navigate('Home');
+      } else {
+        let errorMessage = 'Login ou senha inválidos. Tente novamente.';
+        if (rawResponseText) {
+            errorMessage = rawResponseText;
+        } else if (data && data.message) {
+            errorMessage = data.message;
+        } else if (response.status === 401) {
+            errorMessage = 'Credenciais inválidas.';
+        } else if (response.status === 404) {
+            errorMessage = 'O serviço de login não foi encontrado.';
+        }
+        Alert.alert('Erro no Login', errorMessage);
+      }
+    } catch (error) {
+      console.error('Erro na requisição de login:', error);
+      Alert.alert('Erro de Conexão', 'Não foi possível conectar ao servidor. Verifique sua conexão ou tente mais tarde.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCadastrar = () => {
@@ -49,6 +112,7 @@ const SimpleLoginScreen = () => {
 
   const handleEsqueceuSenha = () => {
     console.log('Esqueceu a senha');
+    Alert.alert('Funcionalidade', 'Ainda não implementado: Recuperação de senha.');
   };
 
   return (
@@ -80,14 +144,15 @@ const SimpleLoginScreen = () => {
 
             <View style={styles.formContainer}>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Login:</Text>
+                <Text style={styles.inputLabel}>Login</Text>
                 <TextInput
                   style={styles.textInput}
                   value={loginData.login}
                   onChangeText={(text) => handleInputChange('login', text)}
-                  placeholder=""
+                  placeholder="Seu email"
                   placeholderTextColor="#999"
                   autoCapitalize="none"
+                  keyboardType="email-address"
                 />
               </View>
 
@@ -97,7 +162,7 @@ const SimpleLoginScreen = () => {
                   style={styles.textInput}
                   value={loginData.senha}
                   onChangeText={(text) => handleInputChange('senha', text)}
-                  placeholder=""
+                  placeholder="Sua senha"
                   placeholderTextColor="#999"
                   secureTextEntry
                 />
@@ -117,13 +182,19 @@ const SimpleLoginScreen = () => {
               <TouchableOpacity
                 style={styles.primaryButton}
                 onPress={handleEntrar}
+                disabled={loading}
               >
-                <Text style={styles.primaryButtonText}>Entrar</Text>
+                {loading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.primaryButtonText}>Entrar</Text>
+                )}
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={styles.secondaryButton}
                 onPress={handleCadastrar}
+                disabled={loading}
               >
                 <Text style={styles.secondaryButtonText}>Cadastre-se</Text>
               </TouchableOpacity>
@@ -259,7 +330,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 4,
   },
-    primaryButtonText: {
+  primaryButtonText: {
     color: '#FFFFFF',
     fontSize: 20,
     fontWeight: 'bold',
