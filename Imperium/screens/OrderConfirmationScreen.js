@@ -119,11 +119,11 @@ const OrderConfirmationScreen = () => {
     <SafeAreaView style={styles.container}>
       <FlatList
         data={confirmedCartItems}
-        keyExtractor={(item, index) => item.title + index}
+        keyExtractor={(item, index) => String(item.id || item.name) + index} 
         renderItem={({ item }) => (
           <View style={styles.summaryItem}>
-            <Text style={styles.summaryItemName}>{item.title} ({item.quantity}x)</Text>
-            <Text style={styles.summaryItemPrice}>R$ {(parseFloat(item.price.replace(',', '.')) * item.quantity).toFixed(2).replace('.', ',')}</Text>
+            <Text style={styles.summaryItemName}>{item.name} ({item.quantity}x)</Text> 
+            <Text style={styles.summaryItemPrice}>R$ {(parseFloat(String(item.price).replace(',', '.')) * item.quantity).toFixed(2).replace('.', ',')}</Text>
           </View>
         )}
         ListHeaderComponent={ListHeader}

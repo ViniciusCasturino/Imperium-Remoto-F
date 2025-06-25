@@ -6,38 +6,42 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
 
   const addToCart = (item) => {
-    setCartItems(prev => {
-      const existing = prev.find(p => p.title === item.title);
-      if (existing) {
-        return prev.map(p =>
-          p.title === item.title ? { ...p, quantity: p.quantity + 1 } : p
+    const identifier = String(item.id || item.name); 
+    
+    setCartItems((prevItems) => {
+      const existingItem = prevItems.find((cartItem) => String(cartItem.id || cartItem.name) === identifier);
+
+      if (existingItem) {
+        return prevItems.map((cartItem) =>
+          String(cartItem.id || cartItem.name) === identifier
+            ? { ...cartItem, quantity: cartItem.quantity + 1 }
+            : cartItem
         );
       } else {
-        return [...prev, { ...item, quantity: 1 }];
+        return [...prevItems, { ...item, quantity: 1 }];
       }
     });
   };
 
-  const removeFromCart = (title) => {
-    setCartItems(prev => prev.filter(p => p.title !== title));
+  const removeFromCart = (identifierToRemove) => {
+    setCartItems((prevItems) => prevItems.filter((item) => String(item.id || item.name) !== identifierToRemove));
   };
 
-    const clearCart = () => {
+  const updateQuantity = (identifierToUpdate, change) => {
+    setCartItems((prevItems) => {
+      return prevItems.map((item) =>
+        String(item.id || item.name) === identifierToUpdate
+          ? { ...item, quantity: Math.max(1, item.quantity + change) } 
+          : item
+      );
+    });
+  };
+  const clearCart = () => {
     setCartItems([]);
   };
 
-  const updateQuantity = (title, amount) => {
-    setCartItems(prev =>
-      prev.map(p =>
-        p.title === title
-          ? { ...p, quantity: Math.max(1, p.quantity + amount) }
-          : p
-      )
-    );
-  };
-
   return (
-    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity,clearCart }}>
+    <CartContext.Provider value={{ cartItems, addToCart, removeFromCart, updateQuantity, clearCart }}>
       {children}
     </CartContext.Provider>
   );

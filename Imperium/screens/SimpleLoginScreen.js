@@ -20,7 +20,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const spartanHelmetImage = require('../assets/images/logo.png');
 
-const API_BASE_URL = 'https://10e9-192-140-127-205.ngrok-free.app';
+const API_BASE_URL = 'https://9d33-200-218-233-195.ngrok-free.app';
 
 const SimpleLoginScreen = () => {
   const [loginData, setLoginData] = useState({

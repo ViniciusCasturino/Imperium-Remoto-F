@@ -9,10 +9,10 @@ const CartScreen = () => {
   const navigation = useNavigation();
 
   const total = cartItems.reduce((sum, item) => {
-    const price = parseFloat(item.price.replace(',', '.'));
-    return sum + price * item.quantity;
+    const rawPrice = item.price !== undefined && item.price !== null ? String(item.price) : '0';
+    const price = parseFloat(rawPrice.replace(',', '.'));
+    return sum + (isNaN(price) ? 0 : price) * (item.quantity || 1);
   }, 0).toFixed(2);
-  
   const isCartEmpty = cartItems.length === 0;
 
   const handleCheckout = () => {
@@ -48,23 +48,23 @@ const CartScreen = () => {
       ) : (
         <FlatList
           data={cartItems}
-          keyExtractor={(item) => item.title}
+          keyExtractor={(item) => String(item.id || item.name)} 
           renderItem={({ item }) => (
             <View style={styles.item}>
-              <Image source={{ uri: item.image }} style={styles.image} />
+              <Image source={{ uri: item.imageUrl }} style={styles.image} />
               <View style={styles.details}>
-                <Text style={styles.name}>{item.title}</Text>
+                <Text style={styles.name}>{item.name}</Text>
                 <Text style={styles.price}>R$ {item.price}</Text>
                 <View style={styles.controls}>
-                  <TouchableOpacity onPress={() => updateQuantity(item.title, -1)}>
+                  <TouchableOpacity onPress={() => updateQuantity(String(item.id || item.name), -1)}>
                     <Text style={styles.qtyButton}>-</Text>
                   </TouchableOpacity>
                   <Text style={styles.qty}>{item.quantity}</Text>
-                  <TouchableOpacity onPress={() => updateQuantity(item.title, 1)}>
+                  <TouchableOpacity onPress={() => updateQuantity(String(item.id || item.name), 1)}>
                     <Text style={styles.qtyButton}>+</Text>
                   </TouchableOpacity>
                 </View>
-                <TouchableOpacity onPress={() => removeFromCart(item.title)} style={styles.removeBtn}>
+                <TouchableOpacity onPress={() => removeFromCart(String(item.id || item.name))} style={styles.removeBtn}>
                   <Text style={styles.removeText}>REMOVER</Text>
                 </TouchableOpacity>
               </View>
