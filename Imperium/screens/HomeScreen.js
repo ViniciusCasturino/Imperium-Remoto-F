@@ -1,4 +1,4 @@
-import React, { useContext } from 'react';
+import React, { useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -6,7 +6,8 @@ import {
   StyleSheet,
   Image,
   ScrollView,
-  TouchableOpacity
+  TouchableOpacity,
+  BackHandler,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CartContext } from '../context/CartContext';
@@ -14,13 +15,25 @@ import { CartContext } from '../context/CartContext';
 const HomeScreen = ({ navigation }) => {
   const { addToCart, cartItems } = useContext(CartContext);
 
+  useEffect(() => {
+    const backAction = () => {
+      return true; 
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      'hardwareBackPress',
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, []);
+
   const getTotalItems = () => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
   return (
     <View style={styles.container}>
-      {/* Top Bar */}
       <View style={styles.topBar}>
         <TextInput
           placeholder="Pesquisar produtos"
@@ -44,7 +57,6 @@ const HomeScreen = ({ navigation }) => {
       </View>
 
       <ScrollView style={styles.content}>
-        {/* Destaques */}
         <Text style={styles.sectionTitle}>Destaques</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
           {mockItems.map((item, index) => (
@@ -59,7 +71,6 @@ const HomeScreen = ({ navigation }) => {
           ))}
         </ScrollView>
 
-        {/* Ofertas */}
         <Text style={styles.sectionTitle}>Ofertas</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
           {mockItems.map((item, index) => (
@@ -74,7 +85,6 @@ const HomeScreen = ({ navigation }) => {
           ))}
         </ScrollView>
 
-        {/* Videogames */}
         <Text style={styles.sectionTitle}>Videogames</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
           {mockItems.map((item, index) => (

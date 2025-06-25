@@ -16,7 +16,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 
-const API_BASE_URL = 'https://bbf8-200-218-233-195.ngrok-free.app';
+const API_BASE_URL = 'https://10e9-192-140-127-205.ngrok-free.app ';
 
 const CadastroScreen = () => {
   const navigation = useNavigation();
