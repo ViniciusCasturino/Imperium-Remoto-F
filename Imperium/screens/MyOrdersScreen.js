@@ -7,6 +7,7 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -50,10 +51,17 @@ const MyOrdersScreen = () => {
       <View style={styles.productsSummary}>
         <Text style={styles.productsSummaryTitle}>Itens do Pedido:</Text>
         {item.products.map((product, index) => (
-          <View key={index} style={styles.productItem}>
-            <Text style={styles.productName}>{product.title}</Text>
+          <View 
+            key={String(product.id || product.name || index)} 
+            style={styles.productItem}
+          >
+            <Text style={styles.productName}>{product.name}</Text> 
             <Text style={styles.productDetails}>
-              {product.quantity}x - R$ {(parseFloat(product.price.replace(',', '.')) * product.quantity).toFixed(2).replace('.', ',')}
+              {product.quantity}x - R$ {
+                (parseFloat(String(product.price).replace(',', '.')) * product.quantity)
+                  .toFixed(2)
+                  .replace('.', ',')
+              }
             </Text>
           </View>
         ))}
@@ -252,6 +260,35 @@ const styles = StyleSheet.create({
     color: '#ccc',
     fontSize: 13,
     lineHeight: 18,
+  },
+  bottomButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: '#8B0000',
+    borderTopWidth: 1,
+    borderColor: 'rgba(255,255,255,0.1)',
+  },
+  homeButton: {
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 5,
+  },
+  homeButtonText: {
+    color: '#000',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginRight: 8,
   },
 });
 

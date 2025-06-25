@@ -56,6 +56,7 @@ const PaymentScreen = () => {
   };
 
   const handleFinalizePayment = () => {
+    console.log("Conteúdo de cartItems ANTES do cálculo do total na PaymentScreen:", cartItems);
     const nameRegex = /^[a-zA-Z\s]+$/;
     if (!nameRegex.test(cardData.cardHolderName.trim()) || cardData.cardHolderName.trim().length === 0 || cardData.cardHolderName.trim().length > 20) {
         Alert.alert(
@@ -74,9 +75,11 @@ const PaymentScreen = () => {
     }
 
     const totalAmount = cartItems.reduce((sum, item) => {
-      const price = parseFloat(item.price.replace(',', '.'));
-      return sum + price * item.quantity;
+      const rawPrice = item.price !== undefined && item.price !== null ? String(item.price) : '0';
+      const price = parseFloat(rawPrice.replace(',', '.'));
+      return sum + (isNaN(price) ? 0 : price) * (item.quantity || 1); 
     }, 0).toFixed(2);
+    console.log("Valor total calculado na PaymentScreen:", totalAmount);
 
     navigation.replace('OrderConfirmation', {
       confirmedCartItems: cartItems,
