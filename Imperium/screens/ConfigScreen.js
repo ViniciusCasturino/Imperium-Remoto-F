@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,73 @@ import {
   Image,
   SafeAreaView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const ConfigScreen = () => {
   const navigation = useNavigation();
+  const [userData, setUserData] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+
+  useEffect(() => {
+    const loadUserData = async () => {
+      try {
+        const storedUserData = await AsyncStorage.getItem('userData');
+        if (storedUserData) {
+          setUserData(JSON.parse(storedUserData));
+        }
+      } catch (error) {
+        console.error('Erro ao carregar dados do usuário do AsyncStorage:', error);
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    loadUserData();
+  }, []);
+
+  const handleLogout = async () => {
+    Alert.alert(
+      'Sair',
+      'Deseja realmente sair?',
+      [
+        { text: 'Não', style: 'cancel' },
+        {
+          text: 'Sim',
+          onPress: async () => {
+            try {
+              await AsyncStorage.clear();
+              console.log('AsyncStorage limpo. Usuário deslogado.');
+              navigation.replace('Login');
+            } catch (error) {
+              console.error('Erro ao limpar AsyncStorage no logout:', error);
+              Alert.alert('Erro', 'Não foi possível deslogar completamente.');
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
+
+  const handleNavigateToProductRegister = () => {
+    navigation.navigate('ProductRegister');
+  };
+
+  if (loadingUser) {
+    return (
+      <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color="#FFD700" />
+        <Text style={{ color: '#fff', marginTop: 10 }}>Carregando perfil...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  const isAdmin = userData && userData.type === 'Admin';
+  const displayedUsername = userData ? (userData.name || userData.username || 'Usuário') : 'Convidado';
 
   return (
     <SafeAreaView style={styles.container}>
@@ -30,7 +91,7 @@ const ConfigScreen = () => {
         style={styles.avatar}
       />
 
-      <Text style={styles.username}>ViniZERAAAA171</Text>
+      <Text style={styles.username}>{displayedUsername}</Text>
 
       <View style={styles.optionsContainer}>
         <Option
@@ -44,6 +105,14 @@ const ConfigScreen = () => {
           onPress={() => navigation.navigate('MyOrders')}
         />
 
+        {isAdmin && (
+          <Option
+            title="Cadastrar Produtos"
+            icon="add-circle-outline"
+            onPress={handleNavigateToProductRegister}
+          />
+        )}
+
         <Option
           title="Deletar conta"
           icon="trash-outline"
@@ -52,7 +121,7 @@ const ConfigScreen = () => {
         <Option
           title="Sair"
           icon="log-out-outline"
-          onPress={() => Alert.alert('Sair', 'Deseja realmente sair?', [{ text: 'Não' }, { text: 'Sim', onPress: () => console.log('Usuário deslogado') }])}
+          onPress={handleLogout}
         />
       </View>
     </SafeAreaView>

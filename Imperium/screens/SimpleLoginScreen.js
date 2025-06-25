@@ -16,9 +16,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
 const spartanHelmetImage = require('../assets/images/logo.png');
 
-const API_BASE_URL = 'https://bbf8-200-218-233-195.ngrok-free.app';
+const API_BASE_URL = 'https://10e9-192-140-127-205.ngrok-free.app';
 
 const SimpleLoginScreen = () => {
   const [loginData, setLoginData] = useState({
@@ -84,6 +86,11 @@ const SimpleLoginScreen = () => {
 
       if (response.ok) {
         Alert.alert('Sucesso', 'Login realizado com sucesso!');
+        if (data && data.token && data.user) {
+          await AsyncStorage.setItem('userToken', data.token);
+          await AsyncStorage.setItem('userData', JSON.stringify(data.user));
+          console.log('Token e dados do usuário salvos no AsyncStorage.');
+        }
         navigation.navigate('Home');
       } else {
         let errorMessage = 'Login ou senha inválidos. Tente novamente.';
@@ -144,7 +151,7 @@ const SimpleLoginScreen = () => {
 
             <View style={styles.formContainer}>
               <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>Login</Text>
+                <Text style={styles.inputLabel}>Login (Email):</Text>
                 <TextInput
                   style={styles.textInput}
                   value={loginData.login}
@@ -225,7 +232,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginTop: 80,
+    marginTop: 20,
   },
   logoPlaceholder: {
     width: 120,

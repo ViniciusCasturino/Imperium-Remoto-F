@@ -13,6 +13,7 @@ import AddressScreen from './screens/AddressScreen';
 import PaymentScreen from './screens/PaymentScreen';
 import OrderConfirmationScreen from './screens/OrderConfirmationScreen';
 import MyOrdersScreen from './screens/MyOrdersScreen';
+import ProductRegisterScreen from './screens/ProductRegisterScreen';
 
 const Stack = createNativeStackNavigator();
 export default function App() {
@@ -41,6 +42,7 @@ export default function App() {
           <Stack.Screen name="Payment" component={PaymentScreen} />
           <Stack.Screen name="OrderConfirmation" component={OrderConfirmationScreen} />
           <Stack.Screen name="MyOrders" component={MyOrdersScreen} />
+          <Stack.Screen name="ProductRegister" component={ProductRegisterScreen} options={{ headerShown: false }} />
         </Stack.Navigator>
       </NavigationContainer>
     </CartProvider>
