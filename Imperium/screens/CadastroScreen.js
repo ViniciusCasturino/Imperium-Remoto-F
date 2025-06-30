@@ -16,7 +16,15 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 
-const API_BASE_URL = 'https://10e9-192-140-127-205.ngrok-free.app ';
+const GATEWAY_PORT = 8765; 
+const YOUR_COMPUTER_IPV4 = '192.168.1.8';
+
+const API_BASE_URL = Platform.select({
+  android: `http://${YOUR_COMPUTER_IPV4}:${GATEWAY_PORT}`,
+  ios: `http://localhost:${GATEWAY_PORT}`,   
+  default: `http://${YOUR_COMPUTER_IPV4}:${GATEWAY_PORT}`, 
+});
+
 
 const CadastroScreen = () => {
   const navigation = useNavigation();
@@ -79,7 +87,7 @@ const CadastroScreen = () => {
       };
 
       console.log('Enviando payload para API:', JSON.stringify(payload));
-      const requestUrl = `${API_BASE_URL}/auth/signup`;
+      const requestUrl = `${API_BASE_URL}/auth/signup`; 
       console.log('URL da Requisição:', requestUrl);
 
       const response = await fetch(requestUrl, {
@@ -113,7 +121,7 @@ const CadastroScreen = () => {
       }
     } catch (error) {
       console.error('Erro na requisição de cadastro:', error);
-      Alert.alert('Erro de Conexão', 'Não foi possível conectar ao servidor. Verifique se o backend está rodando, se a URL do ngrok está ativa e atualizada, e sua conexão com a internet.');
+      Alert.alert('Erro de Conexão', 'Não foi possível conectar ao servidor. Verifique se o backend está rodando, se a URL do ngrok está ativa e atualizada (se estiver usando), e sua conexão com a internet.');
     } finally {
       setLoading(false);
     }

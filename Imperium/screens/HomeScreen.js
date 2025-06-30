@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -10,44 +10,20 @@ import {
   BackHandler,
   ActivityIndicator,
   Alert,
+  RefreshControl,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { CartContext } from '../context/CartContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'https://bare-marris-prof-ferretto-8544d847.koyeb.app';
-
-const mockItems = [
-  {
-    id: 'mock1',
-    name: 'Controle PS5 Branco',
-    imageUrl: 'https://via.placeholder.com/100x100.png?text=PS5',
-    price: 199.90
-  },
-  {
-    id: 'mock2',
-    name: 'Controle PS2',
-    imageUrl: 'https://via.placeholder.com/100x100.png?text=PS2',
-    price: 99.90
-  },
-  {
-    id: 'mock3',
-    name: 'Controle Nintendo Pro',
-    imageUrl: 'https://via.placeholder.com/100x100.png?text=Switch',
-    price: 399.90
-  },
-  {
-    id: 'mock4',
-    name: 'Fone Gamer HyperX',
-    imageUrl: 'https://via.placeholder.com/100x100.png?text=Fone',
-    price: 250.00
-  },
-  {
-    id: 'mock5',
-    name: 'Cadeira Gamer',
-    imageUrl: 'https://via.placeholder.com/100x100.png?text=Cadeira',
-    price: 899.99
-  }
-];
+const GATEWAY_PORT = 8765; 
+const YOUR_COMPUTER_IPV4 = '192.168.1.8'; 
+const API_BASE_URL = Platform.select({
+  android: `http://${YOUR_COMPUTER_IPV4}:${GATEWAY_PORT}`,
+  ios: `http://localhost:${GATEWAY_PORT}`,   
+  default: `http://${YOUR_COMPUTER_IPV4}:${GATEWAY_PORT}`, 
+});
 
 const HomeScreen = ({ navigation }) => {
   const { addToCart, cartItems } = useContext(CartContext);
@@ -55,9 +31,19 @@ const HomeScreen = ({ navigation }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     const backAction = () => {
+      Alert.alert(
+        "Sair do Aplicativo",
+        "Você realmente quer sair?",
+        [
+          { text: "Cancelar", onPress: () => null, style: "cancel" },
+          { text: "Sair", onPress: () => BackHandler.exitApp() }
+        ],
+        { cancelable: false }
+      );
       return true;
     };
     const backHandler = BackHandler.addEventListener(
@@ -67,36 +53,83 @@ const HomeScreen = ({ navigation }) => {
     return () => backHandler.remove();
   }, []);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
 
-      const response = await fetch(`${API_BASE_URL}/api/products`);
-      if (!response.ok) {
-        throw new Error(`Erro na API: ${response.status} ${response.statusText}`);
+      const userToken = await AsyncStorage.getItem('userToken');
+      if (!userToken) {
+        console.warn("Nenhum token de usuário encontrado. Requisições GET podem falhar se protegidas.");
       }
-      const data = await response.json();
-      setProducts(data);
+
+      const PRODUCTS_API_URL = `${API_BASE_URL}/products/BRL?size=100`; 
+      console.log("Buscando produtos em:", PRODUCTS_API_URL); 
+
+      const response = await fetch(PRODUCTS_API_URL, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': userToken ? `Bearer ${userToken}` : '', 
+        },
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text(); 
+        console.error("Erro detalhado na resposta da API:", errorBody);
+        throw new Error(`Erro na API: ${response.status} ${response.statusText}. Detalhes: ${errorBody}`);
+      }
+      
+      const responseData = await response.json();
+      console.log("Resposta completa da API:", responseData); 
+
+      const data = responseData.content || responseData; 
+
+      if (!Array.isArray(data)) {
+          console.error("A resposta da API não é um array de produtos:", data);
+          throw new Error("Formato de dados inesperado da API.");
+      }
+
+      console.log("Produtos recebidos da API (conteúdo):", data); 
+
+      const formattedProducts = data.map(item => ({
+        id: item.id || item.productId,
+        name: item.description || item.name, 
+        imageUrl: item.imageUrl && item.imageUrl.startsWith('http') ? item.imageUrl : 'https://via.placeholder.com/100', 
+        price: item.convertedPrice || item.price,
+      }));
+
+      setProducts(formattedProducts);
     } catch (err) {
       console.error("Erro ao buscar produtos:", err);
       setError("Não foi possível carregar os produtos do servidor.");
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+    const unsubscribe = navigation.addListener('focus', () => {
+      fetchProducts();
+    });
+    return unsubscribe;
+  }, [fetchProducts, navigation]);
+
+  const onRefresh = useCallback(() => {
+    setRefreshing(true);
+    fetchProducts();
+  }, [fetchProducts]);
 
   const getTotalItems = () => {
     return cartItems.reduce((total, item) => total + item.quantity, 0);
   };
 
-  const productsToDisplay = products.length > 0 ? products : mockItems;
+  const productsToDisplay = products; 
+  
   const filteredProductsBySearch = productsToDisplay.filter(item => {
-    const itemName = (item.name || item.title || '').toLowerCase();
+    const itemName = (item.name || item.description || '').toLowerCase();
     const query = searchQuery.toLowerCase();
     return itemName.includes(query);
   });
@@ -110,8 +143,16 @@ const HomeScreen = ({ navigation }) => {
       );
     }
     
-    if (items.length === 0 && searchQuery.length === 0) {
-        return null;
+    if (items.length === 0 && searchQuery.length === 0 && !loading && !error) {
+        return (
+          <View style={styles.noResultsContainer}>
+            <Text style={styles.noResultsText}>Nenhum produto cadastrado ainda. Comece a adicionar!</Text>
+          </View>
+        );
+    }
+    
+    if (items.length === 0) {
+      return null;
     }
 
     return (
@@ -119,14 +160,14 @@ const HomeScreen = ({ navigation }) => {
         <Text style={styles.sectionTitle}>{title}</Text>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
           {items.map((item) => (
-            <View key={item.id || item.name || item.title} style={styles.productCard}> 
+            <View key={item.id || `${item.name}-${item.price}-${item.imageUrl}`} style={styles.productCard}> 
               <Image 
-                source={{ uri: item.imageUrl || item.image || 'https://via.placeholder.com/100' }} 
+                source={{ uri: item.imageUrl }} 
                 style={styles.productImage} 
               />
-              <Text style={styles.productTitle}>{item.name || item.title}</Text>
+              <Text style={styles.productTitle}>{item.name}</Text> 
               <Text style={styles.productPrice}>
-                R$ {parseFloat(String(item.price).replace(',', '.')).toFixed(2).replace('.', ',')}
+                R$ {parseFloat(String(item.price)).toFixed(2).replace('.', ',')}
               </Text>
               <TouchableOpacity style={styles.addButton} onPress={() => addToCart(item)}>
                 <Text style={styles.addButtonText}>Adicionar</Text>
@@ -139,9 +180,8 @@ const HomeScreen = ({ navigation }) => {
   };
 
   const featuredProducts = productsToDisplay.slice(0, 3);
-  const offerProducts = productsToDisplay.filter(p => parseFloat(String(p.price).replace(',', '.')) < 200);
-  const videogameProducts = productsToDisplay.filter(p => (p.name || p.title || '').toLowerCase().includes('controle'));
-
+  const offerProducts = productsToDisplay.filter(p => parseFloat(String(p.price)).toFixed(2) < 200);
+  const videogameProducts = productsToDisplay.filter(p => (p.name || p.description || '').toLowerCase().includes('controle'));
 
   return (
     <View style={styles.container}>
@@ -169,7 +209,12 @@ const HomeScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView 
+        style={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#DC143C']} tintColor="#DC143C" />
+        }
+      >
         {loading && products.length === 0 && (
           <View style={styles.inlineLoadingContainer}>
             <ActivityIndicator size="small" color="#8B0000" />
@@ -186,14 +231,16 @@ const HomeScreen = ({ navigation }) => {
           </View>
         )}
 
-        {searchQuery.length > 0 ? (
-          <ProductSection title={`Resultados para "${searchQuery}"`} items={filteredProductsBySearch} />
-        ) : (
-          <>
-            <ProductSection title="Destaques" items={featuredProducts} />
-            <ProductSection title="Ofertas" items={offerProducts} />
-            <ProductSection title="Videogames" items={videogameProducts} />
-          </>
+        {!loading && !error && (
+          searchQuery.length > 0 ? (
+            <ProductSection title={`Resultados para "${searchQuery}"`} items={filteredProductsBySearch} />
+          ) : (
+            <>
+              <ProductSection title="Destaques" items={featuredProducts} />
+              <ProductSection title="Ofertas" items={offerProducts} />
+              <ProductSection title="Produtos Disponíveis" items={videogameProducts} />
+            </>
+          )
         )}
         
       </ScrollView>
@@ -252,7 +299,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B0000',
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 10
+    padding: 10,
+    paddingTop: Platform.OS === 'android' ? 40 : 10,
   },
   searchInput: {
     flex: 1,
@@ -283,6 +331,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold'
   },
   content: {
+    flex: 1,
     paddingHorizontal: 10,
     paddingTop: 10
   },
@@ -302,7 +351,13 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     padding: 10,
     marginRight: 10,
-    alignItems: 'center'
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+    marginBottom: 10,
   },
   productImage: {
     width: 100,
@@ -313,7 +368,8 @@ const styles = StyleSheet.create({
   productTitle: {
     fontSize: 14,
     fontWeight: '600',
-    textAlign: 'center'
+    textAlign: 'center',
+    minHeight: 32,
   },
   productPrice: {
     marginTop: 5,
