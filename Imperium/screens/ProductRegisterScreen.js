@@ -17,8 +17,15 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const API_BASE_URL = 'https://bare-marris-prof-ferretto-8544d847.koyeb.app';
+const GATEWAY_PORT = 8765; 
+const YOUR_COMPUTER_IPV4 = '192.168.1.8'; 
+const API_BASE_URL = Platform.select({
+  android: `http://${YOUR_COMPUTER_IPV4}:${GATEWAY_PORT}`,
+  ios: `http://localhost:${GATEWAY_PORT}`,   
+  default: `http://${YOUR_COMPUTER_IPV4}:${GATEWAY_PORT}`, 
+});
 
 const ProductRegisterScreen = () => {
   const [productName, setProductName] = useState('');
@@ -55,28 +62,38 @@ const ProductRegisterScreen = () => {
     setLoading(true);
 
     try {
-      const formData = new FormData();
-      formData.append('name', productName.trim());
-      formData.append('price', parseFloat(productValue.replace(',', '.')));
-      
-      formData.append('imageFile', {
-        uri: productImage,
-        name: 'product_image.jpg',
-        type: 'image/jpeg',
-      });
+      const userToken = await AsyncStorage.getItem('userToken');
+      if (!userToken) {
+        Alert.alert('Erro de Autenticação', 'Você precisa estar logado para cadastrar um produto.');
+        setLoading(false);
+        return;
+      }
 
-      console.log('Dados do produto a serem enviados:', {
-        name: productName.trim(),
+      const productData = {
+        description: productName.trim(),
+        brand: "Default Brand",
+        model: "Default Model",
         price: parseFloat(productValue.replace(',', '.')),
-        imageUri: productImage
-      });
+        currency: "USD",
+        imageUrl: productImage, 
+      };
 
-      const response = await fetch(`${API_BASE_URL}/api/products`, {
+      console.log('Dados do produto a serem enviados (JSON):', productData);
+
+      const requestUrl = `${API_BASE_URL}/ws/products`;
+      console.log('URL da Requisição de Cadastro de Produto:', requestUrl); 
+
+      const response = await fetch(requestUrl, {
         method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${userToken}`,
         },
-        body: formData,
+        body: JSON.stringify(productData),
       });
+
+      console.log('Status da Resposta da API (Cadastro de Produto):', response.status);
 
       if (response.ok) {
         Alert.alert('Sucesso', 'Produto cadastrado com sucesso!');
@@ -85,12 +102,17 @@ const ProductRegisterScreen = () => {
         setProductImage(null);
       } else {
         const errorText = await response.text();
-        Alert.alert('Erro no Cadastro', `Falha ao cadastrar produto: ${errorText}`);
+        console.error('Erro detalhado da API:', errorText); 
+        if (response.status === 401 || response.status === 403) {
+            Alert.alert('Erro de Autenticação', 'Sua sessão expirou ou você não tem permissão. Faça login novamente.');
+        } else {
+            Alert.alert('Erro no Cadastro', `Falha ao cadastrar produto: ${errorText}`);
+        }
       }
 
     } catch (error) {
       console.error('Erro ao cadastrar produto:', error);
-      Alert.alert('Erro', 'Não foi possível cadastrar o produto. Tente novamente.');
+      Alert.alert('Erro de Conexão', 'Não foi possível cadastrar o produto. Tente novamente mais tarde.');
     } finally {
       setLoading(false);
     }

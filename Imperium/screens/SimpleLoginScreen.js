@@ -9,7 +9,7 @@ import {
   StatusBar,
   SafeAreaView,
   KeyboardAvoidingView,
-  Platform,
+  Platform, 
   Alert,
   ScrollView,
   Image,
@@ -20,7 +20,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const spartanHelmetImage = require('../assets/images/logo.png');
 
-const API_BASE_URL = 'https://9d33-200-218-233-195.ngrok-free.app';
+const GATEWAY_PORT = 8765; 
+
+const YOUR_COMPUTER_IPV4 = '192.168.1.8';
+const API_BASE_URL = Platform.select({
+  android: `http://192.168.1.8:${GATEWAY_PORT}`,
+  ios: `http://localhost:${GATEWAY_PORT}`,
+  default: `http://${YOUR_COMPUTER_IPV4}:${GATEWAY_PORT}`, 
+});
+
 
 const SimpleLoginScreen = () => {
   const [loginData, setLoginData] = useState({
@@ -55,7 +63,7 @@ const SimpleLoginScreen = () => {
       };
 
       console.log('Enviando payload de login para API:', JSON.stringify(payload));
-      const requestUrl = `${API_BASE_URL}/auth/signin`;
+      const requestUrl = `${API_BASE_URL}/auth/signin`; 
       console.log('URL da Requisição de Login:', requestUrl);
 
       const response = await fetch(requestUrl, {
@@ -95,13 +103,13 @@ const SimpleLoginScreen = () => {
       } else {
         let errorMessage = 'Login ou senha inválidos. Tente novamente.';
         if (rawResponseText) {
-            errorMessage = rawResponseText;
+            errorMessage = rawResponseText.includes('<!DOCTYPE html>') ? 'Erro de conexão com o servidor. Verifique o status do backend/Docker.' : rawResponseText;
         } else if (data && data.message) {
             errorMessage = data.message;
         } else if (response.status === 401) {
             errorMessage = 'Credenciais inválidas.';
         } else if (response.status === 404) {
-            errorMessage = 'O serviço de login não foi encontrado.';
+            errorMessage = 'O serviço de login não foi encontrado no Gateway.';
         }
         Alert.alert('Erro no Login', errorMessage);
       }
@@ -214,15 +222,9 @@ const SimpleLoginScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  gradient: {
-    flex: 1,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  gradient: { flex: 1 },
+  keyboardAvoidingView: { flex: 1 },
   content: {
     flexGrow: 1,
     paddingHorizontal: 40,
@@ -230,10 +232,7 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     justifyContent: 'space-between',
   },
-  logoContainer: {
-    alignItems: 'center',
-    marginTop: 20,
-  },
+  logoContainer: { alignItems: 'center', marginTop: 20 },
   logoPlaceholder: {
     width: 120,
     height: 120,
@@ -242,28 +241,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 4,
-    },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 8,
   },
-  logoImage: {
-    width: '80%',
-    height: '80%',
-  },
-  logoEmoji: {
-    fontSize: 60,
-  },
-  formContainer: {
-    justifyContent: 'center',
-    marginTop: -50,
-  },
-  inputGroup: {
-    marginBottom: 25,
-  },
+  logoImage: { width: '80%', height: '80%' },
+  logoEmoji: { fontSize: 60 },
+  formContainer: { justifyContent: 'center', marginTop: -50 },
+  inputGroup: { marginBottom: 25 },
   inputLabel: {
     fontSize: 18,
     color: '#FFFFFF',
@@ -280,31 +266,19 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(220, 20, 60, 0.6)',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 2,
   },
-  forgotPasswordContainer: {
-    alignItems: 'center',
-    marginTop: 15,
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    color: '#FFFFFF',
-  },
+  forgotPasswordContainer: { alignItems: 'center', marginTop: 15 },
+  forgotPasswordText: { fontSize: 14, color: '#FFFFFF' },
   forgotPasswordLink: {
     color: '#FFD700',
     fontWeight: 'bold',
     textDecorationLine: 'underline',
   },
-  buttonContainer: {
-    gap: 20,
-    marginBottom: 40,
-  },
+  buttonContainer: { gap: 20, marginBottom: 40 },
   primaryButton: {
     backgroundColor: 'rgba(139, 69, 19, 0.9)',
     borderRadius: 12,
@@ -313,10 +287,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(220, 20, 60, 0.7)',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.3,
     shadowRadius: 6,
     elevation: 6,
@@ -329,10 +300,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: 'rgba(220, 20, 60, 0.5)',
     shadowColor: '#000',
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
+    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 4,
